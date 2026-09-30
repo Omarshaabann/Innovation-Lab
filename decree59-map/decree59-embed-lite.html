@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خريطة مشاريع المرسوم 59 – سورية بلا مخيمات</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>:root{
+  --green:#0f4c3a; --green2:#1b6b52; --paper:#f5f7f4; --card:#fff; --ink:#1c2a25; --mute:#5d6d66; --line:#dfe6e1;
+  --contract:#f26a0f; --studied:#2b6cb0; --audit:#7c4dbd; --unresolved:#c0392b; --reconcile:#8a94a0;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:"Simplified Arabic","Segoe UI",Tahoma,"Noto Naskh Arabic",Arial,sans-serif;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;font-size:15px}
+.top{background:var(--green);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}
+.crest{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--green);display:grid;place-items:center;font-weight:700;font-size:20px;flex:none}
+h1{font-size:18px;margin:0;line-height:1.3}
+.brand p{margin:2px 0 0;font-size:12.5px;opacity:.85}
+.layer-switch{display:flex;background:rgba(255,255,255,.14);border-radius:8px;padding:3px}
+.layer-switch button{background:none;border:0;color:#fff;padding:6px 14px;border-radius:6px;font:inherit;cursor:pointer}
+.layer-switch button.on{background:#fff;color:var(--green);font-weight:700}
+
+.app{flex:1;display:flex;min-height:0}
+.mapwrap{flex:1;position:relative;min-width:0}
+#map{position:absolute;inset:0;background:#e7ece8}
+.panel{width:420px;max-width:46vw;background:var(--card);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--line);background:#eef2ee}
+.tab{flex:1;background:none;border:0;padding:11px 4px;font:inherit;cursor:pointer;color:var(--mute);border-bottom:3px solid transparent}
+.tab.on{color:var(--green);font-weight:700;border-bottom-color:var(--green);background:#fff}
+.tabpane{display:none;overflow:auto;flex:1;padding:12px;min-height:0}
+.tabpane.on{display:flex;flex-direction:column}
+#pane-list.on{overflow:hidden}
+
+.focus{background:#fff4ea;border:1px solid #ffd3b0;border-radius:8px;padding:8px 10px;margin-bottom:10px}
+.switch{display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:700;color:#a8470a}
+.filters input[type=search],.filters select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+.filters .row{display:flex;gap:8px;margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1.5px solid var(--c);color:var(--c);background:#fff;border-radius:999px;padding:3px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--c);color:#fff}
+.count{font-size:12.5px;color:var(--mute);margin:10px 2px 6px}
+.list{overflow:auto;flex:1;display:flex;flex-direction:column;gap:7px;padding-bottom:6px}
+.card{border:1px solid var(--line);border-inline-start:5px solid var(--c);border-radius:8px;padding:8px 10px;cursor:pointer;background:#fff}
+.card:hover{background:#f3f8f5}
+.card .t{font-weight:700;line-height:1.35}
+.card .m{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12.5px;color:var(--mute);margin-top:4px;align-items:center}
+.badge{background:var(--c);color:#fff;border-radius:5px;padding:1px 7px;font-size:12px}
+.stage{color:#a8470a;font-weight:700}
+.gh{font-weight:700;color:var(--green);margin:8px 2px 0;font-size:13.5px}
+.export{margin-top:8px;padding:8px;border:1px solid var(--green);background:#fff;color:var(--green);border-radius:8px;font:inherit;cursor:pointer}
+
+.legend{position:absolute;bottom:22px;inset-inline-start:12px;z-index:500;background:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 2px 10px rgba(0,0,0,.2);font-size:12.5px}
+.legend div{display:flex;gap:7px;align-items:center;margin:3px 0}
+.legend i{width:13px;height:13px;border-radius:50%;background:var(--c);display:inline-block}
+.legend .hd{font-weight:700;color:var(--green);margin-bottom:4px}
+.maptip{position:absolute;top:10px;inset-inline-start:52px;z-index:500;background:rgba(255,255,255,.92);padding:3px 9px;border-radius:6px;font-size:12px;color:var(--mute)}
+
+/* markers */
+.pin{position:relative;display:grid;place-items:center;border-radius:50%;background:var(--c);color:#fff;font-weight:700;border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.45);font-family:inherit}
+.pin.agg{border-style:dashed;border-color:#fff;outline:2px dashed var(--c)}
+.pin.contract::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--c);opacity:.7;animation:pulse 1.8s ease-out infinite}
+.pin.dim{opacity:.35}
+@keyframes pulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.leaflet-container{font-family:inherit}
+.pop{direction:rtl;min-width:230px;max-width:300px;font-family:inherit}
+.pop h3{margin:0 0 2px;font-size:15px;color:var(--green)}
+.pop .sub{color:var(--mute);font-size:12px;margin-bottom:6px}
+.pop .items{max-height:230px;overflow:auto}
+.pop .it{border-top:1px solid var(--line);padding:5px 0;font-size:13px}
+.pop .it b{display:block}
+.pop .dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-inline-end:5px}
+.leaflet-popup-content{margin:10px 12px}
+
+/* overview */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:9px 11px;border-top:4px solid var(--c,var(--green))}
+.kpi b{display:block;font-size:24px;line-height:1.1;color:var(--c,var(--green))}
+.kpi span{font-size:12.5px;color:var(--mute)}
+.kpi.hero{grid-column:1/-1;background:#fff4ea;--c:var(--contract)}
+h2{font-size:15px;color:var(--green);margin:16px 0 6px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:start}
+th{background:#eef2ee;color:var(--green)}
+td.n{text-align:center;font-variant-numeric:tabular-nums}
+.stack{display:flex;height:16px;border-radius:5px;overflow:hidden;background:#eee}
+.stack i{display:block;background:var(--c)}
+.bar{height:10px;background:#e8ede9;border-radius:5px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--green2)}
+.src{font-size:12px;color:var(--mute);margin-top:14px;line-height:1.6}
+tr.click{cursor:pointer}tr.click:hover{background:#f3f8f5}
+.dec{counter-reset:d;list-style:none;padding:0;margin:0}
+.dec li{counter-increment:d;border:1px solid var(--line);border-radius:8px;padding:9px 11px 9px 11px;margin-bottom:8px;position:relative;padding-inline-start:44px;line-height:1.55}
+.dec li::before{content:counter(d);position:absolute;inset-inline-start:10px;top:8px;width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:700}
+
+@media (max-width:820px){
+  .app{flex-direction:column}
+  .mapwrap{flex:none;height:52vh}
+  .panel{width:100%;max-width:none;flex:1;border:0}
+  h1{font-size:15px}
+  .brand p{font-size:11px}
+}
+
+html,body{min-height:600px}</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="crest">٥٩</div>
+    <div>
+      <h1>خريطة مشاريع المرسوم رقم (59) – «سورية بلا مخيمات»</h1>
+      <p>وزارة الأشغال العامة والإسكان · مكتب معاون الوزير للشؤون الفنية · تحديث 29/09/2026</p>
+    </div>
+  </div>
+  <div class="layer-switch" role="group" aria-label="طبقات الخريطة">
+    <button data-layer="projects" class="on">المشاريع</button>
+    <button data-layer="survey">مسح المساكن</button>
+    <button data-layer="both">الكل</button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="mapwrap">
+    <div id="map" aria-label="خريطة المشاريع"></div>
+    <div class="legend" id="legend"></div>
+    <div class="maptip" id="maptip">المواقع تقريبية على مستوى القرية/المنطقة</div>
+  </section>
+
+  <aside class="panel">
+    <nav class="tabs" role="tablist">
+      <button class="tab on" data-tab="list">المشاريع</button>
+      <button class="tab" data-tab="overview">نظرة عامة</button>
+      <button class="tab" data-tab="survey">المسح السكني</button>
+      <button class="tab" data-tab="decisions">القرارات</button>
+    </nav>
+
+    <div class="tabpane on" id="pane-list">
+      <div class="focus">
+        <label class="switch"><input type="checkbox" id="onlyContracting" checked><span>إبراز المشاريع قيد التعاقد فقط</span></label>
+      </div>
+      <div class="filters">
+        <input type="search" id="q" placeholder="ابحث باسم المشروع أو القرية…">
+        <div class="row">
+          <select id="fGov"><option value="all">كل المحافظات</option></select>
+          <select id="fSector"><option value="all">كل القطاعات</option></select>
+        </div>
+        <div class="chips" id="fStatus"></div>
+      </div>
+      <div class="count" id="count"></div>
+      <div class="list" id="list"></div>
+      <button class="export" id="csv">تصدير القائمة (CSV)</button>
+    </div>
+
+    <div class="tabpane" id="pane-overview"></div>
+    <div class="tabpane" id="pane-survey"></div>
+    <div class="tabpane" id="pane-decisions"></div>
+  </aside>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>/* بيانات منصّة خريطة مشاريع المرسوم 59 لعام 2026 — «سورية بلا مخيمات»
+   المصدر: تقرير الوضع الحالي – تحديث 29/09/2026 (مكتب معاون الوزير للشؤون الفنية)
+   ملاحظة: إحداثيات القرى تقريبية (تُعدَّل في PLACES أدناه). المشاريع التي لم تُحدَّد مواقعها بعد
+   تُسجَّل كمجموعات (count) وتُعرض في «مواقع غير محددة». */
+
+const STATUS = {
+  contracting: { label: 'يتم التعاقد على تنفيذها (سيبكو)', short: 'قيد التعاقد', color: '#f26a0f', rank: 0 },
+  studied:     { label: 'دراسة كاملة من سيسكو',            short: 'مدروسة (سيسكو)', color: '#2b6cb0', rank: 1 },
+  audit:       { label: 'مدروسة من الجهة المالكة – تدقيق سيسكو', short: 'قيد التدقيق', color: '#7c4dbd', rank: 2 },
+  unresolved:  { label: 'لم يُتفق بشأنها',                   short: 'لم يُتفق', color: '#c0392b', rank: 3 },
+  reconcile:   { label: 'قيد المطابقة',                      short: 'قيد المطابقة', color: '#8a94a0', rank: 4 },
+};
+
+const STAGE = {
+  signing: 'مرحلة الختم والتوقيع',
+  tender: 'استدراج عروض من 17 مقاولاً – الأسعار متفق عليها',
+  agreed: 'الأسعار متفق عليها – بانتظار المباشرة',
+  contract: 'التوجيه بإعداد العقد – الأسعار متفق عليها',
+  started: 'بوشر التنفيذ',
+  uxo: 'بانتظار التأكد من خلو الموقع من الذخائر',
+  listing: 'مدروسة وقيد التعاقد – الأسماء لم تُرسل بعد',
+};
+
+const SECTOR = {
+  school:  { label: 'مدارس', icon: '🏫' },
+  water:   { label: 'مياه', icon: '💧' },
+  sewer:   { label: 'صرف صحي', icon: '🚰' },
+  health:  { label: 'صحة', icon: '🏥' },
+  road:    { label: 'طرق', icon: '🛣️' },
+};
+
+const GOV = {
+  aleppo: { name: 'حلب',   center: [36.22, 37.16], zoom: 9, agg: [36.50, 37.62] },
+  idlib:  { name: 'إدلب',  center: [35.75, 36.60], zoom: 9, agg: [35.97, 36.20] },
+  hama:   { name: 'حماة',  center: [35.22, 36.70], zoom: 9, agg: [34.92, 36.45] },
+};
+
+/* أرقام التقرير الرسمية (لمطابقة ما يُحسب من السجلات) */
+const GOV_STATS = {
+  aleppo: { planned: 119, cost: 9249756, contracting: 37, studied: 27, audit: 46, unresolved: 1, reconcile: 8 },
+  idlib:  { planned: 36,  cost: 8267703, contracting: 32, studied: 1,  audit: 1,  unresolved: 2, reconcile: 0 },
+  hama:   { planned: 84,  cost: 7512056, contracting: 40, studied: 0,  audit: 21, unresolved: 21, reconcile: 2 },
+};
+
+/* ---------- إحداثيات تقريبية للمواقع ---------- */
+const PLACES = {
+  // حلب
+  'عندان': [36.383, 37.052], 'تل رفعت': [36.470, 37.097], 'رتيان': [36.485, 36.955], 'ماير': [36.470, 37.020],
+  'كفرنوران': [36.415, 37.115], 'منغ': [36.522, 37.045], 'شيوخ فوقاني': [36.620, 38.030], 'شيوخ تحتاني': [36.600, 38.010],
+  'عنجارة': [36.270, 36.925], 'دير حافر': [36.105, 37.745], 'السفيرة': [36.072, 37.372], 'حريتان': [36.300, 37.050],
+  'الواحة': [36.055, 37.355], 'تل الضمان': [36.000, 37.460], 'عقربة': [36.130, 37.420], 'حيان': [36.275, 37.015],
+  'خناصر': [35.850, 37.530], 'رسم النفل': [35.935, 37.470], 'الهربكية': [36.040, 37.330], 'القرباطية': [35.990, 37.400],
+  'بلاس': [35.870, 37.300], 'عسان': [35.990, 37.250], 'العيس': [35.850, 37.170], 'الحاجب': [36.050, 37.560],
+  'باشكوي': [36.440, 37.080], 'بنان': [36.400, 37.000], 'الهواز': [35.870, 37.480], 'عين العرب': [36.530, 38.350],
+  'كويرس شرقي': [36.170, 37.690], 'احرص الشمالية': [36.455, 37.110], 'أم الهوتة': [36.020, 37.500],
+  // إدلب
+  'كفرنبل': [35.633, 36.533], 'معرة حرمة': [35.570, 36.530], 'كفرومة': [35.620, 36.590], 'جرجناز': [35.540, 36.680],
+  'الغدفة': [35.610, 36.720], 'الخوين': [35.470, 36.640], 'الدير الغربي': [35.760, 36.330], 'معرة النعمان': [35.643, 36.671],
+  'خان شيخون': [35.440, 36.640], 'سراقب': [35.860, 36.805], 'جسر الشغور': [35.810, 36.322],
+  // حماة
+  'كفرزيتا': [35.367, 36.600], 'اللطامنة': [35.317, 36.617], 'قلعة المضيق': [35.420, 36.380], 'كفرنبودة': [35.410, 36.440],
+  'الزيارة': [35.450, 36.345], 'مورك': [35.300, 36.660], 'طيبة الإمام': [35.335, 36.735], 'صوران': [35.300, 36.750],
+  'محردة': [35.250, 36.570], 'شيزر': [35.275, 36.575], 'حلفايا': [35.290, 36.605], 'السقيلبية': [35.370, 36.380],
+  'السلمية': [35.012, 37.050], 'المنصورة': [35.360, 36.300], 'الصهرية': [35.430, 36.400], 'أثريا': [35.400, 37.630],
+  'الملولح': [35.380, 36.900], 'قبر فضة': [35.330, 36.310], 'العنكاوي': [35.500, 36.400], 'الحميرات': [35.340, 36.340],
+};
+
+const DISTRICTS = {
+  'السلمية': [35.012, 37.050], 'السقيلبية': [35.370, 36.380], 'صوران': [35.300, 36.750],
+  'محردة': [35.250, 36.570], 'الريف الجنوبي': [34.900, 36.800], 'حماة': [35.130, 36.750],
+};
+
+function _jit(name, base) {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const a = ((h % 1000) / 1000 - 0.5) * 0.09, b = (((h >> 10) % 1000) / 1000 - 0.5) * 0.09;
+  return [base[0] + a, base[1] + b];
+}
+
+function resolvePlace(place, district, gov) {
+  if (place && PLACES[place]) return { ll: PLACES[place], approx: false };
+  if (district && DISTRICTS[district]) return { ll: _jit(place || district, DISTRICTS[district]), approx: true };
+  if (place && place.includes(' – ')) {
+    const first = place.split(' – ')[0].trim();
+    if (PLACES[first]) return { ll: _jit(place, PLACES[first]), approx: true };
+  }
+  return null;
+}
+
+/* ---------- السجلات ---------- */
+const PROJECTS = [];
+let _id = 0;
+function add(gov, status, sector, name, o = {}) {
+  const r = resolvePlace(o.place, o.district, gov);
+  PROJECTS.push({
+    id: ++_id, gov, status, sector, name,
+    place: o.place || null, district: o.district || null,
+    ll: r ? r.ll : null, approx: r ? r.approx : false,
+    cost: o.cost ?? null, pool: o.pool || null, poolCost: o.poolCost || 0,
+    ben: o.ben ?? null, type: o.type || null, stage: o.stage || null,
+    note: o.note || null, count: o.count || 1, agg: !!o.count && !r,
+  });
+}
+
+/* ===== حلب ===== */
+// أ. يتم التعاقد (37)
+add('aleppo', 'contracting', 'water', 'خط مياه عسان – بلاس', { place: 'بلاس', cost: 550000, stage: 'started', note: 'مدروس من مؤسسة المياه' });
+add('aleppo', 'contracting', 'water', 'حفر 4 آبار – الهضبة الخضراء (منطقة العيس)', { place: 'العيس', cost: 150000, stage: 'uxo', note: 'مدروس من مؤسسة المياه' });
+[['شيوخ فوقاني', 790471], ['عنجارة', 716843], ['عندان', 335530], ['دير حافر', 313783], ['تل رفعت', 238630],
+ ['السفيرة', 225686], ['حريتان', 203053], ['الواحة (السفيرة)', 126987], ['تل الضمان', 73475], ['عقربة', 48001],
+ ['حيان', 15250], ['خناصر', 8596], ['رسم النفل', 5980], ['الهربكية', 3800], ['القرباطية', 2600]]
+  .forEach(([p, c]) => add('aleppo', 'contracting', 'sewer', `صرف صحي – ${p}`, {
+    place: p.startsWith('الواحة') ? 'الواحة' : p, cost: c, stage: 'agreed', type: 'أعمال استبدال',
+    note: 'المباشرة بـ5 مشاريع هذا الأسبوع أو القادم' }));
+add('aleppo', 'contracting', 'school', 'مدارس حلب المدروسة وقيد التعاقد (20 مدرسة)', { count: 20, stage: 'listing', note: 'الأسماء لدى مديرية التربية وفرع سيبكو حلب – لم تُرسل بعد' });
+// ب. دراسة كاملة من سيسكو (27)
+[['ثانوية عندان للبنين', 'عندان', 'هدم وبناء جديد'], ['البقيجة – كويرس شرقي', 'كويرس شرقي'], ['شيوخ تحتاني – عين العرب', 'شيوخ تحتاني'],
+ ['الجديدة – الحاجب', 'الحاجب'], ['احرص الشمالية – تل رفعت', 'احرص الشمالية'], ['مزرعة أم الكراميل – تل الضمان', 'تل الضمان'],
+ ['هوبر – تل الضمان', 'تل الضمان'], ['ثانوية بنان', 'بنان'], ['إعدادية خناصر', 'خناصر'], ['المجاص – أم الهوتة', 'أم الهوتة'],
+ ['ابتدائية تل الضمان المدمرة', 'تل الضمان', 'إعادة بناء'], ['الرملة الشمالية – خناصر', 'خناصر'], ['مدرسة حريتان', 'حريتان']]
+  .forEach(([n, p, t]) => add('aleppo', 'studied', 'school', `مدرسة ${n}`, { place: p, type: t, note: 'دراسة سيسكو – الكشف الميداني والمخططات جارية' }));
+[['إرواء قرى بلاس – تل الضمان (المرحلة الثانية)', 'بلاس'], ['خطوط مياه أبو دريخة – الحاجب', 'الحاجب'], ['صيانة شبكة عندان (10 كم)', 'عندان'],
+ ['خزان عالٍ – الأحياء الشمالية في عندان', 'عندان'], ['خزان 150 م³ – الحي الشمالي في عندان', 'عندان'], ['شبكات مدينة السفيرة', 'السفيرة'],
+ ['المنظومة المائية لباشكوي وحيان', 'باشكوي'], ['خط بولي إيتلين 200 مم – دير حافر', 'دير حافر'], ['خط خناصر – الهواز', 'الهواز'],
+ ['خط رسم النفل – شلالة صغيرة', 'رسم النفل'], ['بئر جب انطاش – الحاجب', 'الحاجب'], ['توسيع شبكة حيان', 'حيان'],
+ ['بئر تل رفعت', 'تل رفعت'], ['شبكة عنجارة', 'عنجارة']]
+  .forEach(([n, p]) => add('aleppo', 'studied', 'water', n, { place: p, note: 'بالتعاون مع مؤسسة المياه' }));
+// ج. مدروسة من الجهة المالكة وتدقّقها سيسكو (46)
+add('aleppo', 'audit', 'school', 'مدارس حلب قيد الدراسة التدريجية (46 مدرسة)', { count: 46, note: 'تُحال جداولها إلى سيسكو للتدقيق فور اكتمال دراستها (توجيه اجتماع 28/09)' });
+// د. لم يُتفق (1)
+add('aleppo', 'unresolved', 'health', 'توريد تجهيزات لمشفى (ليس بناءً)', { count: 1, note: 'لم يُؤكَّد لاحتمال تحويله إلى المنظمات – الاسم والمورّد غير محددين' });
+add('aleppo', 'reconcile', 'school', 'مشاريع حلب قيد المطابقة مع قوائم سيسكو', { count: 8, note: 'اختلاف تعداد القطاعات بين اجتماع 28/09 والقائمة الأساسية' });
+
+/* ===== إدلب ===== */
+// أ. يتم التعاقد (32)
+[['الأمويين','معرة النعمان'],['القيسية','معرة النعمان'],['الصقيعة','معرة النعمان'],['المشاميس','معرة النعمان'],['المكسر الفوقاني','معرة النعمان'],
+ ['أم الهلاهيل','معرة النعمان'],['بنات الغدفة','معرة النعمان'],['تل دم','معرة النعمان'],['تل محتي','معرة النعمان'],['حلبان الريفية','معرة النعمان'],
+ ['عبد الله بن الزبير','معرة النعمان'],['عيبان','معرة النعمان'],['كراتين كبير','معرة النعمان'],['معرشمارين','معرة النعمان'],['مغارة ميرزا','معرة النعمان'],
+ ['وادي صقعة','معرة النعمان'],['الزرزور','خان شيخون'],['الزهراء','خان شيخون'],['أم جلال المحدثة','خان شيخون'],['بنات كفرسجنة','خان شيخون'],
+ ['تل مرق','خان شيخون'],['ثانوية بنات التمانعة','خان شيخون'],['صهيان الغربية','خان شيخون'],['بصرى','سراقب'],['تل سلمو','سراقب'],['ثلجينة','سراقب'],
+ ['رسم الدبشية','سراقب'],['سكرية علوش','سراقب'],['مزرعة تل سلمو','سراقب'],['مزرعة حرملا','سراقب'],['شهداء أرملا','جسر الشغور']]
+  .forEach(([n, c]) => add('idlib', 'contracting', 'school', `ترميم مدرسة ${n}`, {
+    place: `${c} – ${n}`, stage: 'tender', type: 'ترميم', note: `مجمع ${c}`, pool: 'idlib-schools', poolCost: 3440683 }));
+add('idlib', 'contracting', 'sewer', 'شبكة الصرف الصحي في كفرنبل', { place: 'كفرنبل', cost: 900000, stage: 'contract' });
+// ب. سيسكو (1)
+add('idlib', 'studied', 'health', 'مشفى المعرة الوطني', { place: 'معرة النعمان', cost: 2000000, type: 'إعادة تأهيل', note: 'إعادة دراسة لدى سيسكو خلال 40 يوماً – أتعاب الدراسة 5,000,000 ل.س' });
+// ج. تدقيق (1)
+add('idlib', 'audit', 'health', 'مركز الخوين الصحي', { place: 'الخوين', cost: 228000, note: 'مدروس من مديرية الصحة، أُحيل إلى سيسكو للتدقيق – وبدأت الأعمال' });
+// د. لم يُتفق (2)
+add('idlib', 'unresolved', 'water', 'محطة مياه كفرنبل', { place: 'كفرنبل', cost: 555000, note: 'قيد التفاوض: فروقات أسعار ومواد، وعدم توفر المضخات محلياً' });
+add('idlib', 'unresolved', 'water', 'محطة مياه الدير الغربي', { place: 'الدير الغربي', cost: 1290000, note: 'قيد التفاوض: فروقات أسعار ومواد، وعدم توفر المضخات محلياً' });
+
+/* ===== حماة ===== */
+// أ. مدارس معتمدة جاهزة للتنفيذ (40) – الكلف بعد تدقيق 29/09
+[
+ ['ترميم مدرسة المنصورة','المنصورة','السقيلبية','ترميم وتأهيل',231451,120],
+ ['ترميم مدرسة مشيرفة عقيربات','المشيرفة','السلمية','ترميم وتأهيل',153806,350],
+ ['ترميم مدرسة الفان الوسطاني ح1+ح2','الفان الوسطاني','السلمية','ترميم وتأهيل',107157,60],
+ ['ترميم مدرسة عبيان','عبيان','السلمية','ترميم وتأهيل',35754,204],
+ ['هدم وبناء مدرسة عبد الله اليوسف','طيبة الإمام','صوران','هدم وإعادة بناء',362261,3952],
+ ['ترميم وتأهيل مدرسة القسطل الجنوبي','القسطل الجنوبي','السلمية','ترميم وتأهيل',88051,280],
+ ['ترميم مدرسة دوير الأكراد','دوير الأكراد','السقيلبية','ترميم وتأهيل',70808,394],
+ ['ترميم مدرسة الحانوتة','الحانوتة','السلمية','ترميم وتأهيل',94544,270],
+ ['ترميم مدرسة الصياد','كفرزيتا','محردة','ترميم وتأهيل',51233,140],
+ ['بناء مدرسة سحاب','سحاب','السقيلبية','بناء جديد',148876,180],
+ ['ترميم مدرسة الحواش الشرقية ح2','قلعة المضيق','السقيلبية','ترميم وتأهيل',197021,2547],
+ ['بناء مدرسة خالد الشيخ – ثانوية كفر نبودة للبنين+ح2','كفرنبودة','السقيلبية','بناء جديد',320348,9279],
+ ['ترميم وتأهيل مدرسة مصطفى عثمان ح2 – عمرو بن معاذ','مورك','صوران','ترميم وتأهيل',192260,3576],
+ ['ترميم وتأهيل مدرسة عطشان ح2+ثا / تجمع كتل','عطشان','صوران','ترميم وتأهيل',188296,2735],
+ ['ترميم وتأهيل مدرسة الجماسة','جماسة عديات','السقيلبية','ترميم وتأهيل',131643,2349],
+ ['ترميم وتأهيل مدرسة أبو كهف','أبو كهف','صوران','ترميم وتأهيل',24589,304],
+ ['ترميم وتأهيل مدرسة السميرية الجنوبية','السميرية','السلمية','ترميم وتأهيل',57045,280],
+ ['ترميم وتأهيل مدرسة بيوض','بيوض','صوران','ترميم وتأهيل',129775,2197],
+ ['ترميم وتأهيل مدرسة ربدة','الربدة','صوران','ترميم وتأهيل',53474,572],
+ ['ترميم وتأهيل مدرسة طهماز','طهماز','السلمية','ترميم وتأهيل',29236,607],
+ ['ترميم وتأهيل مدرسة جب الريان','جب الريان','السلمية','ترميم وتأهيل',24407,230],
+ ['ترميم مدرسة الرحية الجنوبية','الرحية الجنوبية','صوران','ترميم وتأهيل',118537,962],
+ ['ترميم مدرسة جب السكر','جب السكر','صوران','ترميم وتأهيل',22868,60],
+ ['ترميم مدرسة دوما ح1','دوما','صوران','ترميم وتأهيل',73004,270],
+ ['ترميم مدرسة العالية','العالية','السلمية','ترميم وتأهيل',25660,60],
+ ['إعادة تأهيل مدرسة أم حارتين','أم حارتين','صوران','ترميم وتأهيل',94728,2000],
+ ['إعادة تأهيل مدرسة الهرط الغربي','الهرط الغربي','السلمية','ترميم وتأهيل',61417,2000],
+ ['إعادة تأهيل مدرسة فورو','فورو','السقيلبية','ترميم وتأهيل',65379,413],
+ ['إعادة تأهيل مدرسة المشرفة والصخر','مشيرفة الصخر','محردة','ترميم وتأهيل',79112,2000],
+ ['إعادة تأهيل مدرسة قصر أبو سمرة ح1','قصر أبو سمرة','صوران','ترميم وتأهيل',80563,2000],
+ ['بناء مدرسة الحميرات – 6 غرف صفية','الحميرات','السقيلبية','بناء جديد',195514,13964],
+ ['إعادة تأهيل مدرسة جناة الصوارنة','جناة الصوارنة','صوران','ترميم وتأهيل',107967,600],
+ ['إعادة تأهيل مدرسة الرملية ح2+ثا','الرملية','صوران','ترميم وتأهيل',69091,175],
+ ['مدرسة زور الحيصة','زور الحيصة','صوران','ترميم وتأهيل',94545,280],
+ ['ترميم مدرسة حر بنفسه الثانوية','حر بنفسه','الريف الجنوبي','ترميم وتأهيل',134295,210],
+ ['مدرسة شهرناز','شهرناز','السقيلبية','ترميم وتأهيل',197339,null],
+ ['مدرسة أبو خنادق','أبو خنادق','السلمية','ترميم وتأهيل',57108,null],
+ ['مدرسة البويضة','البويضة','صوران','ترميم وتأهيل',150228,350],
+ ['مدرسة اللحايا','اللحايا','صوران','ترميم وتأهيل',123969,90],
+ ['مدرسة أبو المضابع','أبو المضابع','السلمية','ترميم وتأهيل',50668,175],
+].forEach(([n, c, d, t, cost, ben]) => add('hama', 'contracting', 'school', n, {
+  place: c, district: d, cost, ben, type: t, stage: 'signing',
+  note: `المنطقة: ${d} – دقّقتها سيسكو واعتمدتها (29/09)` }));
+// ج. تدقيق (21)
+['التريمسة','كفرزيتا','تل ملح','صوران','طيبة الإمام','كوكب','سوحا','الجماسة','الصفصافة','الحواش','الشريعة','العوينة','صلبا']
+  .forEach(p => add('hama', 'audit', 'sewer', `صرف صحي – ${p}`, { place: p, district: 'حماة', note: 'التدقيق متوقف بانتظار المخططات (مقطع عرضي نموذجي ومسقط الحدود). سيبكو: الأسعار متفق عليها والمباشرة بـ5 مشاريع' }));
+['طريق الباني','طرق متفرقة في اللطامنة','طرق متفرقة في كفرزيتا','طريق المستريحة – طهماز']
+  .forEach(n => add('hama', 'audit', 'road', n, { place: n.includes('اللطامنة') ? 'اللطامنة' : n.includes('كفرزيتا') ? 'كفرزيتا' : n, district: 'حماة', note: 'التدقيق متوقف بانتظار المخططات' }));
+['عقيربات','عكاش','اللطامنة','الكريم']
+  .forEach(p => add('hama', 'audit', 'sewer', `صرف صحي – ${p}`, { place: p, district: 'حماة', note: 'لم تُرسل بعد إلى سيسكو' }));
+// د. لم يُتفق (21)
+[['القسطل الجنوبي','السلمية',35000],['القسطل الشمالي','السلمية',35000],['سوحا','السلمية',40000],['قسطون – دقماق','السقيلبية',20000],
+ ['الصهرية – ميدان غزال','السقيلبية',215733],['الصهرية – شهرناز','السقيلبية',114970],['الصهرية – دير سنبل','السقيلبية',304791],
+ ['الطليسية','صوران',65000],['كفرزيتا – الصخرات','محردة',30000],['كفرزيتا – الحماميات','محردة',25000],['العزيزية – الزيتية','السقيلبية',20000],
+ ['أفاميا – عين الطاقة','السقيلبية',20000],['الصهرية – المستريحة','السقيلبية',24000],['شيزر','محردة',40000],['اللطامنة (بناء جديد)','محردة',78843]]
+  .forEach(([p, d, c]) => add('hama', 'unresolved', 'water', `مياه – ${p}`, { place: p.replace(' (بناء جديد)', ''), district: d, cost: c,
+    note: 'مدروسة، لم يُتفق على الأسعار وزمن التنفيذ؛ الغطاسات غير متوفرة محلياً' }));
+[['الزيارة','السقيلبية',110000,'ترميم وتأهيل'],['أثريا','السلمية',70000,'ترميم وتأهيل'],['قبر فضة','السقيلبية',67743,'بناء جديد'],
+ ['الملولح','صوران',115000,'ترميم وتأهيل'],['حلفايا','محردة',130400,'بناء جديد'],['العنكاوي','السقيلبية',100000,'ترميم وتأهيل']]
+  .forEach(([p, d, c, t]) => add('hama', 'unresolved', 'health', `صحة – ${p}`, { place: p, district: d, cost: c, type: t, note: 'خلاف كبير في الأسعار' }));
+add('hama', 'reconcile', 'school', 'مشروعان من الـ84 قيد المطابقة', { count: 2, note: 'قيد المطابقة مع التصنيف' });
+
+/* ---------- مسح أضرار المساكن (المرحلة الأولى) ---------- */
+const SURVEY = [
+  ['aleppo', 'عندان', 743, 679, '20/09'], ['aleppo', 'تل رفعت', 186, 54, '29/09'], ['aleppo', 'رتيان', 110, 0, null],
+  ['aleppo', 'ماير', 51, 0, null], ['aleppo', 'كفرنوران', 53, 0, null], ['aleppo', 'منغ', 56, 0, null],
+  ['idlib', 'كفرنبل', 1957, 0, null], ['idlib', 'معرة حرمة', 930, 0, null], ['idlib', 'كفرومة', 560, 0, null],
+  ['idlib', 'جرجناز', 346, 0, null], ['idlib', 'الغدفة', 334, 0, null],
+  ['hama', 'اللطامنة', 1478, 1256, '22/09'], ['hama', 'كفرزيتا', 1187, 0, null], ['hama', 'قلعة المضيق', 1201, 0, null],
+  ['hama', 'كفرنبودة', 902, 0, null], ['hama', 'الزيارة', 216, 0, null],
+  ['latakia', 'سلمى', 72, 72, '24/09'], ['latakia', 'كنسبا', 91, 91, '23/09'], ['latakia', 'ربيعة', 2, 2, '24/09'], ['latakia', 'قسطل معاف', 2, 2, '24/09'],
+].map(([gov, name, target, done, start]) => {
+  const ll = PLACES[name] || { 'سلمى': [35.905, 36.290], 'كنسبا': [35.935, 36.250], 'ربيعة': [35.880, 36.120], 'قسطل معاف': [35.860, 36.060] }[name];
+  return { gov, name, target, done, start, ll };
+});
+const GOV_NAME = { aleppo: 'حلب', idlib: 'إدلب', hama: 'حماة', latakia: 'اللاذقية' };
+
+const DECISIONS = [
+  'تخصيص فريق مسح مستقل لإدلب لبدء مسح (4,127) مسكناً دون انتظار انتهاء أعمال حلب.',
+  'حسم أسعار (23) مشروعاً معلّقاً: مياه حماة (15) وصحتها (6) ومحطتا مياه إدلب، ومعالجة عدم توفر المضخات والغطاسات في السوق المحلية.',
+  'إلزام الجهات المالكة في حماة بتقديم مخططات (17) مشروعاً (صرف صحي وطرق) لإكمال التدقيق.',
+  'تسمية مدارس حلب العشرين الجاهزة للتعاقد، وإحالة المدارس الـ(46) إلى سيسكو للتدقيق فور اكتمال دراستها.',
+  'اعتماد سقف (6,000) دولار أمريكي لترميم المسكن، وإلزام سيسكو بإعادة احتساب الكلف قبل نهاية الأسبوع.',
+  'مطابقة قوائم حلب وحماة مع التصنيف (10 مشاريع)، وحسم مشروع صحة حلب مع المنظمات.',
+];
+</script>
+<script>(function () {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const fmt = n => n == null ? '—' : Number(n).toLocaleString('en-US');
+  const usd = n => n == null ? '—' : fmt(n) + ' $';
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const st = k => STATUS[k];
+
+  const state = { statuses: new Set(Object.keys(STATUS)), gov: 'all', sector: 'all', q: '', onlyContracting: true, layer: 'projects' };
+
+  /* ---------- الخريطة ---------- */
+  const map = L.map('map', { zoomControl: true, minZoom: 7 }).setView([35.75, 36.85], 8);
+  // OpenStreetMap يحجب التضمين داخل المواقع (403)، لذا نستخدم CARTO مع بديل Esri تلقائي عند الفشل
+  const BASES = [
+    { url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', o: { subdomains: 'abcd', attribution: '© مساهمو OpenStreetMap © CARTO' } },
+    { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', o: { attribution: 'Tiles © Esri' } },
+  ];
+  let baseIdx = 0, tileErrs = 0, base = null;
+  function useBase(i) {
+    if (base) map.removeLayer(base);
+    base = L.tileLayer(BASES[i].url, Object.assign({ maxZoom: 18, crossOrigin: false }, BASES[i].o)).addTo(map);
+    base.bringToBack();
+    base.on('tileerror', () => { if (++tileErrs === 6 && baseIdx < BASES.length - 1) { tileErrs = 0; useBase(++baseIdx); } });
+  }
+  useBase(0);
+  const projLayer = L.layerGroup().addTo(map);
+  const surveyLayer = L.layerGroup();
+
+  /* ---------- الفلاتر ---------- */
+  const matchBase = p =>
+    (state.gov === 'all' || p.gov === state.gov) &&
+    (state.sector === 'all' || p.sector === state.sector) &&
+    (!state.q || (p.name + ' ' + (p.place || '') + ' ' + (p.note || '')).includes(state.q));
+  const matchList = p => matchBase(p) && state.statuses.has(p.status) && (!state.onlyContracting || p.status === 'contracting');
+
+  function buildControls() {
+    Object.entries(GOV).forEach(([k, g]) => $('#fGov').insertAdjacentHTML('beforeend', `<option value="${k}">${g.name}</option>`));
+    Object.entries(SECTOR).forEach(([k, s]) => $('#fSector').insertAdjacentHTML('beforeend', `<option value="${k}">${s.icon} ${s.label}</option>`));
+    $('#fStatus').innerHTML = Object.entries(STATUS).map(([k, s]) =>
+      `<button class="chip on" style="--c:${s.color}" data-s="${k}">${s.short}</button>`).join('');
+    $('#legend').innerHTML = '<div class="hd">حالة المشروع</div>' + Object.values(STATUS).map(s =>
+      `<div><i style="--c:${s.color}"></i>${s.short}</div>`).join('') +
+      '<div><i style="--c:#fff;outline:2px dashed #888"></i>موقع غير محدد بعد</div>';
+  }
+  function syncChips() {
+    document.querySelectorAll('#fStatus .chip').forEach(c => {
+      const on = state.onlyContracting ? c.dataset.s === 'contracting' : state.statuses.has(c.dataset.s);
+      c.classList.toggle('on', on);
+    });
+  }
+
+  /* ---------- الخريطة: مجموعات المواقع ---------- */
+  function groups() {
+    const m = new Map();
+    PROJECTS.filter(matchBase).filter(p => state.statuses.has(p.status) || state.onlyContracting).forEach(p => {
+      const ll = p.ll || GOV[p.gov].agg;
+      const key = p.ll ? p.gov + '|' + ll[0].toFixed(2) + ',' + ll[1].toFixed(2) : 'agg|' + p.gov;
+      if (!m.has(key)) m.set(key, { ll, gov: p.gov, items: [], agg: !p.ll });
+      m.get(key).items.push(p);
+    });
+    return [...m.values()];
+  }
+  const cnt = arr => arr.reduce((a, p) => a + p.count, 0);
+
+  function renderMap() {
+    projLayer.clearLayers();
+    groups().forEach(g => {
+      const hasC = g.items.some(p => p.status === 'contracting');
+      const best = g.items.reduce((a, p) => st(p.status).rank < st(a.status).rank ? p : a).status;
+      const n = cnt(g.items);
+      const dim = state.onlyContracting && !hasC;
+      const size = Math.round(Math.min(46, 22 + Math.sqrt(n) * 3.4)) + (hasC ? 4 : 0);
+      const label = g.items.length === 1 && !g.agg && g.items[0].count === 1 ? SECTOR[g.items[0].sector].icon : fmt(n);
+      const icon = L.divIcon({
+        className: '', iconSize: [size, size], iconAnchor: [size / 2, size / 2],
+        html: `<div class="pin ${hasC ? 'contract' : ''} ${g.agg ? 'agg' : ''} ${dim ? 'dim' : ''}" style="--c:${st(best).color};width:${size}px;height:${size}px;font-size:${size > 30 ? 14 : 12}px">${label}</div>`
+      });
+      const mk = L.marker(g.ll, { icon, zIndexOffset: hasC ? 1000 : 0, riseOnHover: true }).addTo(projLayer);
+      mk.bindPopup(() => popupHtml(g), { maxWidth: 320 });
+      g.marker = mk; g.items.forEach(p => { p._g = g; });
+    });
+  }
+
+  function itemHtml(p) {
+    const s = st(p.status);
+    return `<div class="it" style="--c:${s.color}"><b><span class="dot"></span>${esc(p.name)}${p.count > 1 ? ` (${p.count})` : ''}</b>
+      <span style="color:${s.color}">${s.short}</span>${p.stage ? ` · <span class="stage">${STAGE[p.stage]}</span>` : ''}
+      ${p.cost ? `<br>الكلفة: ${usd(p.cost)}` : ''}${p.ben ? ` · المستفيدون: ${fmt(p.ben)}` : ''}${p.type ? `<br>${esc(p.type)}` : ''}
+      ${p.note ? `<br><small>${esc(p.note)}</small>` : ''}</div>`;
+  }
+  function popupHtml(g) {
+    const items = g.items.slice().sort((a, b) => st(a.status).rank - st(b.status).rank);
+    const title = g.agg ? `مواقع غير محددة – ${GOV[g.gov].name}` : (items[0].place || items[0].name).split(' – ')[0];
+    return `<div class="pop"><h3>${esc(title)}</h3><div class="sub">${GOV[g.gov].name} · ${fmt(cnt(items))} مشروع${g.agg ? '' : items.some(p => p.approx) ? ' · الموقع تقريبي' : ''}</div>
+      <div class="items">${items.map(itemHtml).join('')}</div></div>`;
+  }
+
+  /* ---------- القائمة ---------- */
+  function renderList() {
+    const rows = PROJECTS.filter(matchList).sort((a, b) =>
+      st(a.status).rank - st(b.status).rank || a.gov.localeCompare(b.gov) || a.id - b.id);
+    const total = cnt(rows), cost = costOf(rows);
+    $('#count').textContent = `${fmt(total)} مشروع` + (cost ? ` · كلفة معلومة: ${usd(cost)}` : '');
+    let html = '', last = '';
+    rows.forEach(p => {
+      const key = p.status + '|' + p.gov;
+      if (key !== last) { html += `<div class="gh">${st(p.status).short} – ${GOV[p.gov].name}</div>`; last = key; }
+      const s = st(p.status);
+      html += `<div class="card" style="--c:${s.color}" data-id="${p.id}">
+        <div class="t">${SECTOR[p.sector].icon} ${esc(p.name)}${p.count > 1 ? ` <small>(${p.count})</small>` : ''}</div>
+        <div class="m"><span class="badge">${s.short}</span>${p.place ? `<span>📍 ${esc(p.place.split(' – ')[0])}</span>` : '<span>📍 غير محدد</span>'}
+        ${p.cost ? `<span>${usd(p.cost)}</span>` : ''}${p.stage ? `<span class="stage">${STAGE[p.stage]}</span>` : ''}</div></div>`;
+    });
+    $('#list').innerHTML = html || '<p style="color:#5d6d66">لا توجد مشاريع مطابقة.</p>';
+  }
+  function costOf(rows) {
+    const pools = new Set(); let t = 0;
+    rows.forEach(p => { if (p.cost) t += p.cost; if (p.pool && !pools.has(p.pool)) { pools.add(p.pool); t += p.poolCost; } });
+    return t;
+  }
+
+  function focusProject(id) {
+    const p = PROJECTS.find(x => x.id === id); if (!p) return;
+    if (state.layer === 'survey') setLayer('projects');
+    const g = p._g;
+    if (!g || !map.hasLayer(projLayer)) return;
+    map.flyTo(g.ll, Math.max(map.getZoom(), g.agg ? 9 : 11), { duration: .7 });
+    setTimeout(() => g.marker.openPopup(), 750);
+    if (matchMedia('(max-width:820px)').matches) $('#map').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  /* ---------- نظرة عامة ---------- */
+  function renderOverview() {
+    const by = (gov, s) => PROJECTS.filter(p => (!gov || p.gov === gov) && (!s || p.status === s));
+    const all = cnt(PROJECTS), con = cnt(by(null, 'contracting'));
+    const conCost = costOf(by(null, 'contracting'));
+    const govRows = Object.entries(GOV).map(([k, g]) => {
+      const tot = cnt(by(k)), parts = Object.keys(STATUS).map(s => cnt(by(k, s)));
+      const bar = Object.keys(STATUS).map((s, i) => `<i style="--c:${STATUS[s].color};width:${parts[i] / tot * 100}%" title="${STATUS[s].short}: ${parts[i]}"></i>`).join('');
+      return `<tr class="click" data-gov="${k}"><td>${g.name}</td><td class="n">${tot}</td><td class="n"><b style="color:var(--contract)">${parts[0]}</b></td>
+        <td class="n">${fmt(GOV_STATS[k].cost)}</td></tr><tr><td colspan="4"><div class="stack">${bar}</div></td></tr>`;
+    }).join('');
+    const sectors = Object.entries(SECTOR).map(([k, s]) => {
+      const c = cnt(PROJECTS.filter(p => p.sector === k && p.status === 'contracting'));
+      return c ? `<tr><td>${s.icon} ${s.label}</td><td class="n"><b>${c}</b></td><td class="n">${usd(costOf(PROJECTS.filter(p => p.sector === k && p.status === 'contracting')))}</td></tr>` : '';
+    }).join('');
+    const stages = {};
+    PROJECTS.filter(p => p.status === 'contracting').forEach(p => stages[p.stage] = (stages[p.stage] || 0) + p.count);
+    $('#pane-overview').innerHTML = `
+      <div class="kpis">
+        <div class="kpi hero"><b>${con}</b><span>مشروعاً يتم التعاقد على تنفيذها – ${(con / all * 100).toFixed(1)}% من المصنّف · كلفة معلومة ${usd(conCost)}</span></div>
+        <div class="kpi"><b>${all}</b><span>مشروعاً مقرراً – 25,029,515 $</span></div>
+        <div class="kpi" style="--c:var(--studied)"><b>${cnt(by(null, 'studied'))}</b><span>دراسة كاملة من سيسكو</span></div>
+        <div class="kpi" style="--c:var(--audit)"><b>${cnt(by(null, 'audit'))}</b><span>مدروسة – تدقيق سيسكو</span></div>
+        <div class="kpi" style="--c:var(--unresolved)"><b>${cnt(by(null, 'unresolved'))}</b><span>لم يُتفق بشأنها – بحاجة إلى قرار</span></div>
+      </div>
+      <h2>مراحل المشاريع قيد التعاقد</h2>
+      <table><tbody>${Object.entries(stages).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${STAGE[k]}</td><td class="n"><b>${v}</b></td></tr>`).join('')}</tbody></table>
+      <h2>حسب المحافظة</h2>
+      <table><thead><tr><th>المحافظة</th><th>المقرر</th><th>تعاقد</th><th>الكلفة ($)</th></tr></thead><tbody>${govRows}</tbody></table>
+      <div style="font-size:12px;margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 12px">${Object.values(STATUS).map(s => `<span><i style="display:inline-block;width:10px;height:10px;background:${s.color};border-radius:2px"></i> ${s.short}</span>`).join('')}</div>
+      <h2>المشاريع قيد التعاقد حسب القطاع</h2>
+      <table><thead><tr><th>القطاع</th><th>العدد</th><th>الكلفة المعلومة</th></tr></thead><tbody>${sectors}</tbody></table>
+      <p class="src">المصدر: تقرير «الوضع الحالي لمشاريع المرسوم 59» – تحديث 29/09/2026 (إصدار مُستدرَك يحلّ محل تقرير 28/09). التصنيف وفق اجتماع 28/09 بين معاون الوزير للشؤون الفنية ومعاوني مديري سيبكو وسيسكو. كلفة مدارس إدلب (3,440,683 $) مجمّعة ولم تُوزَّع على المدارس.</p>`;
+    $('#pane-overview').querySelectorAll('tr.click').forEach(r => r.onclick = () => { setGov(r.dataset.gov); switchTab('list'); });
+  }
+
+  /* ---------- المسح السكني ---------- */
+  function renderSurvey() {
+    const T = SURVEY.reduce((a, s) => a + s.target, 0), D = SURVEY.reduce((a, s) => a + s.done, 0);
+    const govs = ['aleppo', 'hama', 'latakia', 'idlib'].map(g => {
+      const r = SURVEY.filter(s => s.gov === g), t = r.reduce((a, s) => a + s.target, 0), d = r.reduce((a, s) => a + s.done, 0);
+      return `<tr><td>${GOV_NAME[g]}</td><td class="n">${fmt(t)}</td><td class="n">${fmt(d)}</td><td><div class="bar"><i style="width:${d / t * 100}%"></i></div></td><td class="n">${(d / t * 100).toFixed(1)}%</td></tr>`;
+    }).join('');
+    const rows = SURVEY.map((s, i) => `<tr class="click" data-i="${i}"><td>${s.name}<br><small style="color:#5d6d66">${GOV_NAME[s.gov]}${s.start ? ' · بدأ ' + s.start : ' · لم يبدأ'}</small></td>
+      <td class="n">${fmt(s.target)}</td><td class="n">${fmt(s.done)}</td><td><div class="bar"><i style="width:${s.done / s.target * 100}%"></i></div></td><td class="n">${(s.done / s.target * 100).toFixed(0)}%</td></tr>`).join('');
+    $('#pane-survey').innerHTML = `
+      <div class="kpis">
+        <div class="kpi hero" style="--c:var(--green)"><b>${fmt(D)} / ${fmt(T)}</b><span>مسكناً ممسوحاً في المرحلة الأولى (${(D / T * 100).toFixed(1)}%) – 20 قرية وبلدة</span></div>
+        <div class="kpi"><b>${fmt(T - D)}</b><span>مسكناً غير منفذ</span></div>
+        <div class="kpi"><b>68,682</b><span>مسكناً متضرراً يملكها قاطنو المخيمات</span></div>
+      </div>
+      <h2>حسب المحافظة</h2>
+      <table><thead><tr><th>المحافظة</th><th>المستهدف</th><th>المنجز</th><th></th><th></th></tr></thead><tbody>${govs}</tbody></table>
+      <h2>حسب القرية (اضغط للانتقال على الخريطة)</h2>
+      <table><thead><tr><th>القرية</th><th>المستهدف</th><th>المنجز</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>
+      <p class="src">كلفة الترميم: بالمتوسط الحالي (14,600 $) للمرحلة الأولى ≈ 152.96 مليون $، وبالسقف الموجَّه (6,000 $) ≈ 62.86 مليون $. الفرق بين المسح المنجز والمخطَّط موزَّع بين حلب (≈ 4–5 أيام عمل)، حماة (≈ 23–24 يوم عمل) وإدلب (لم يبدأ – يلزم فريق مستقل).</p>`;
+    $('#pane-survey').querySelectorAll('tr.click').forEach(r => r.onclick = () => {
+      const s = SURVEY[+r.dataset.i]; setLayer('survey'); map.flyTo(s.ll, 12, { duration: .7 });
+      map.once('moveend', () => surveyLayer.eachLayer(l => l._s === s && l.openPopup()));
+      if (matchMedia('(max-width:820px)').matches) $('#map').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  function renderSurveyLayer() {
+    surveyLayer.clearLayers();
+    SURVEY.forEach(s => {
+      const p = s.done / s.target, col = p >= 1 ? '#1b6b52' : p > 0 ? '#e0a100' : '#8a94a0';
+      const c = L.circleMarker(s.ll, { radius: 6 + Math.sqrt(s.target) / 3.2, color: '#123', weight: 1.5, fillColor: col, fillOpacity: p > 0 ? .8 : .25, dashArray: p > 0 ? null : '3 3' });
+      c._s = s;
+      c.bindPopup(`<div class="pop"><h3>مسح المساكن – ${s.name}</h3><div class="sub">${GOV_NAME[s.gov]}${s.start ? ' · بدء العمل ' + s.start : ' · لم يبدأ'}</div>
+        المستهدف: <b>${fmt(s.target)}</b> · المنجز: <b>${fmt(s.done)}</b> · المتبقي: <b>${fmt(s.target - s.done)}</b>
+        <div class="bar" style="margin-top:6px"><i style="width:${p * 100}%"></i></div>${(p * 100).toFixed(1)}%</div>`);
+      c.addTo(surveyLayer);
+    });
+  }
+
+  function renderDecisions() {
+    $('#pane-decisions').innerHTML = `<h2 style="margin-top:0">القرارات المطلوبة</h2><ol class="dec">${DECISIONS.map(d => `<li>${d}</li>`).join('')}</ol>
+      <p class="src">بحسب تقرير 29/09/2026. المشاريع «لم يُتفق بشأنها» (24) تظهر باللون الأحمر على الخريطة.</p>`;
+  }
+
+  /* ---------- تفاعل ---------- */
+  function setLayer(l) {
+    state.layer = l;
+    document.querySelectorAll('.layer-switch button').forEach(b => b.classList.toggle('on', b.dataset.layer === l));
+    l === 'survey' ? map.removeLayer(projLayer) : map.addLayer(projLayer);
+    l === 'projects' ? map.removeLayer(surveyLayer) : map.addLayer(surveyLayer);
+    $('#legend').style.display = l === 'survey' ? 'none' : '';
+  }
+  function setGov(g) {
+    state.gov = g; $('#fGov').value = g; refresh();
+    if (g !== 'all') map.flyTo(GOV[g].center, GOV[g].zoom, { duration: .7 });
+  }
+  function switchTab(t) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+    document.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + t));
+  }
+  function refresh() { syncChips(); renderMap(); renderList(); }
+
+  function bind() {
+    document.querySelectorAll('.layer-switch button').forEach(b => b.onclick = () => setLayer(b.dataset.layer));
+    document.querySelectorAll('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+    $('#onlyContracting').onchange = e => { state.onlyContracting = e.target.checked; refresh(); };
+    $('#q').oninput = e => { state.q = e.target.value.trim(); refresh(); };
+    $('#fGov').onchange = e => setGov(e.target.value);
+    $('#fSector').onchange = e => { state.sector = e.target.value; refresh(); };
+    $('#fStatus').onclick = e => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      if (state.onlyContracting) { state.onlyContracting = false; $('#onlyContracting').checked = false; state.statuses = new Set([b.dataset.s]); }
+      else state.statuses.has(b.dataset.s) ? state.statuses.delete(b.dataset.s) : state.statuses.add(b.dataset.s);
+      if (!state.statuses.size) state.statuses = new Set(Object.keys(STATUS));
+      refresh();
+    };
+    $('#list').onclick = e => { const c = e.target.closest('.card'); if (c) focusProject(+c.dataset.id); };
+    $('#csv').onclick = () => {
+      const head = ['المحافظة', 'القطاع', 'المشروع', 'الموقع', 'الحالة', 'المرحلة', 'الكلفة ($)', 'العدد', 'ملاحظات'];
+      const rows = PROJECTS.filter(matchList).map(p => [GOV[p.gov].name, SECTOR[p.sector].label, p.name, p.place || '', st(p.status).short, p.stage ? STAGE[p.stage] : '', p.cost ?? '', p.count, p.note || '']);
+      const csv = '﻿' + [head, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      a.download = 'decree59-projects.csv'; a.click();
+    };
+  }
+
+  /* ---------- تشغيل + فحص اتساق مع أرقام التقرير ---------- */
+  buildControls(); bind(); renderSurveyLayer(); renderOverview(); renderSurvey(); renderDecisions(); refresh();
+  const bad = [];
+  Object.entries(GOV_STATS).forEach(([g, s]) => Object.keys(STATUS).forEach(k => {
+    const c = cnt(PROJECTS.filter(p => p.gov === g && p.status === k));
+    if (c !== s[k]) bad.push(`${g}/${k}: ${c} ≠ ${s[k]}`);
+  }));
+  if (bad.length) console.warn('عدم اتساق مع أرقام التقرير:', bad);
+  window.__decree59 = { state, map, mismatches: bad };
+  map.setView([35.7, 36.75], 8);
+})();
+</script>
+</body>
+</html>
