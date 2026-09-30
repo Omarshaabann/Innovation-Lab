@@ -10,9 +10,19 @@
 
   /* ---------- الخريطة ---------- */
   const map = L.map('map', { zoomControl: true, minZoom: 7 }).setView([35.75, 36.85], 8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18, attribution: '© مساهمو OpenStreetMap'
-  }).addTo(map);
+  // OpenStreetMap يحجب التضمين داخل المواقع (403)، لذا نستخدم CARTO مع بديل Esri تلقائي عند الفشل
+  const BASES = [
+    { url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', o: { subdomains: 'abcd', attribution: '© مساهمو OpenStreetMap © CARTO' } },
+    { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', o: { attribution: 'Tiles © Esri' } },
+  ];
+  let baseIdx = 0, tileErrs = 0, base = null;
+  function useBase(i) {
+    if (base) map.removeLayer(base);
+    base = L.tileLayer(BASES[i].url, Object.assign({ maxZoom: 18, crossOrigin: false }, BASES[i].o)).addTo(map);
+    base.bringToBack();
+    base.on('tileerror', () => { if (++tileErrs === 6 && baseIdx < BASES.length - 1) { tileErrs = 0; useBase(++baseIdx); } });
+  }
+  useBase(0);
   const projLayer = L.layerGroup().addTo(map);
   const surveyLayer = L.layerGroup();
 
