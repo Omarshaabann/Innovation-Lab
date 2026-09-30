@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خريطة مشاريع المرسوم 59 – سورية بلا مخيمات</title>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="crest">٥٩</div>
+    <div>
+      <h1>خريطة مشاريع المرسوم رقم (59) – «سورية بلا مخيمات»</h1>
+      <p>وزارة الأشغال العامة والإسكان · مكتب معاون الوزير للشؤون الفنية · تحديث 29/09/2026</p>
+    </div>
+  </div>
+  <div class="layer-switch" role="group" aria-label="طبقات الخريطة">
+    <button data-layer="projects" class="on">المشاريع</button>
+    <button data-layer="survey">مسح المساكن</button>
+    <button data-layer="both">الكل</button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="mapwrap">
+    <div id="map" aria-label="خريطة المشاريع"></div>
+    <div class="legend" id="legend"></div>
+    <div class="maptip" id="maptip">المواقع تقريبية على مستوى القرية/المنطقة</div>
+  </section>
+
+  <aside class="panel">
+    <nav class="tabs" role="tablist">
+      <button class="tab on" data-tab="list">المشاريع</button>
+      <button class="tab" data-tab="overview">نظرة عامة</button>
+      <button class="tab" data-tab="survey">المسح السكني</button>
+      <button class="tab" data-tab="decisions">القرارات</button>
+    </nav>
+
+    <div class="tabpane on" id="pane-list">
+      <div class="focus">
+        <label class="switch"><input type="checkbox" id="onlyContracting" checked><span>إبراز المشاريع قيد التعاقد فقط</span></label>
+      </div>
+      <div class="filters">
+        <input type="search" id="q" placeholder="ابحث باسم المشروع أو القرية…">
+        <div class="row">
+          <select id="fGov"><option value="all">كل المحافظات</option></select>
+          <select id="fSector"><option value="all">كل القطاعات</option></select>
+        </div>
+        <div class="chips" id="fStatus"></div>
+      </div>
+      <div class="count" id="count"></div>
+      <div class="list" id="list"></div>
+      <button class="export" id="csv">تصدير القائمة (CSV)</button>
+    </div>
+
+    <div class="tabpane" id="pane-overview"></div>
+    <div class="tabpane" id="pane-survey"></div>
+    <div class="tabpane" id="pane-decisions"></div>
+  </aside>
+</main>
+
+<script src="vendor/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
