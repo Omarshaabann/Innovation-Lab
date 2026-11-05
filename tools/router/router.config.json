@@ -1,0 +1,21 @@
+{
+  "opencode_model": "opencode/big-pickle",
+  "fallback_models": ["opencode/glm-5.3-flash-free", "opencode/deepseek-v4.1-flash-free"],
+  "threshold": 2,
+  "timeout_seconds": 600,
+  "output_dir": "outputs",
+  "creative_heavy": [
+    "brainstorm", "ideas", "variants", "variations", "draft", "write", "rewrite", "copy", "slogan",
+    "headline", "story", "script", "article", "blog", "post", "caption", "naming", "names", "tagline",
+    "speech", "outline", "proposal text", "translate", "summarize", "image prompt", "storyboard",
+    "عصف", "أفكار", "افكار", "صياغة", "اكتب", "أعد كتابة", "نص", "شعار", "عنوان", "مقال", "سيناريو",
+    "قصة", "خطاب", "ترجم", "لخص", "تلخيص", "مسودة", "محتوى", "منشور", "وصف"
+  ],
+  "claude_only": [
+    "edit file", "refactor", "fix bug", "debug", "commit", "push", "git", "pull request", "pr ",
+    "deploy", "secret", "credential", "token", "security", "mcp", "database", "migrate", "test",
+    "settings.json", "hook", "review", "final", "approve", "delete", "تعديل الملف", "أصلح", "اصلح",
+    "خطأ", "ادفع", "التزام", "نشر", "أمن", "مراجعة نهائية", "احذف", "قاعدة بيانات"
+  ],
+  "volume_hints": ["10 ", "20 ", "50 ", "100 ", "many", "bulk", "multiple", "long", "كثير", "عدة", "طويل", "مجموعة"]
+}
